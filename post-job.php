@@ -50,15 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = "✅ Puna u postua me sukses!";
 
             // Notify users with job alerts
-            $stmt = $conn->prepare("SELECT u.email FROM job_alerts a JOIN users u ON a.user_id = u.id WHERE (? = '' OR ? LIKE CONCAT('%', a.keyword, '%')) AND (? = '' OR ? = a.city)");
-            $stmt->bind_param("ssss", $title, $title, $city, $city);
-            $stmt->execute();
-            $stmt->bind_result($email);
-            while ($stmt->fetch()) {
+            $alert_stmt = $conn->prepare("SELECT u.email FROM job_alerts a JOIN users u ON a.user_id = u.id WHERE (? = '' OR ? LIKE CONCAT('%', a.keyword, '%')) AND (? = '' OR ? = a.city)");
+            $alert_stmt->bind_param("ssss", $title, $title, $city, $city);
+            $alert_stmt->execute();
+            $alert_stmt->bind_result($email);
+            while ($alert_stmt->fetch()) {
                 // Send email (use mail() or a library)
                 @mail($email, "Punë e re: $title", "Një punë e re është postuar që përputhet me interesat tuaja.", "From: noreply@punaperty.local");
             }
-            $stmt->close();
+            $alert_stmt->close();
         } else {
             $message = "❌ Gabim gjatë postimit të punës.";
         }
