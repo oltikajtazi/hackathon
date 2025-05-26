@@ -11,12 +11,28 @@ $trending_jobs = [
     ['title' => 'Specialist i Shërbimeve Shëndetësore Virtuale', 'description' => 'Ofron konsulta mjekësore përmes platformave online.']
 ];
 
-// ✅ Added image in the query
-$sql = "SELECT id, title, city, created_at, image FROM jobs ORDER BY created_at DESC LIMIT 5";
-$result = $conn->query($sql);
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $search_param = '%' . $search . '%';
+    $stmt = $conn->prepare("SELECT id, title, city, created_at, image FROM jobs WHERE title LIKE ? OR city LIKE ? ORDER BY created_at DESC LIMIT 20");
+    $stmt->bind_param("ss", $search_param, $search_param);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+} else {
+    $sql = "SELECT id, title, city, created_at, image FROM jobs ORDER BY created_at DESC LIMIT 5";
+    $result = $conn->query($sql);
+}
 ?>
 
 <div class="container mt-5" style="max-width: 900px;">
+
+  <div class="mb-4">
+    <form method="get" class="d-flex">
+      <input type="text" name="search" class="form-control me-2" placeholder="Kërko punë ose kompani..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+      <button type="submit" class="btn btn-primary">Kërko</button>
+    </form>
+  </div>
 
   <div class="mb-5">
     <h2 class="mb-4 text-center">🚀 Punët më të kërkuara për 2025</h2>

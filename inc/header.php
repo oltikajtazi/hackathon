@@ -1,4 +1,19 @@
 <?php
+include(__DIR__ . '/db.php');
+if (session_status() == PHP_SESSION_NONE) session_start();
+global $total_unread;
+
+// Merr numrin e aplikimeve të reja për user-in aktual (punëdhënësin)
+$new_applications = 0;
+if (isset($_SESSION['user_id'])) {
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.user_id = ? AND (a.status IS NULL OR a.status = 'pending')");
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $stmt->bind_result($new_applications);
+    $stmt->fetch();
+    $stmt->close();
+}
+
 $notif_count = 0;
 if (isset($_SESSION['user_id'])) {
     $stmt = $conn->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
@@ -51,7 +66,26 @@ if (isset($_SESSION['user_id'])) {
             <?php endif; ?>
           </a>
         </li>
-        <li class="nav-item"><a class="nav-link" href="messages.php">Mesazhet</a></li>
+        <li class="nav-item">
+          <a class="nav-link position-relative" href="/punaperty/messages.php">
+            <span class="bi bi-chat-dots"></span> Mesazhet
+            <?php if (isset($total_unread) && $total_unread > 0): ?>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <?php echo $total_unread; ?>
+              </span>
+            <?php endif; ?>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link position-relative" href="review.php">
+            Reviews
+            <?php if ($new_applications > 0): ?>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <?php echo $new_applications; ?>
+              </span>
+            <?php endif; ?>
+          </a>
+        </li>
       </ul>
     </div>
   </div>
